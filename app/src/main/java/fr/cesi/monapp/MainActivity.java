@@ -8,9 +8,21 @@ import com.google.android.material.snackbar.Snackbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.os.StrictMode;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,11 +37,29 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Loading", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+
+                JSONObject jsonObj = readJSONFeed(getString(R.string.activity_url));
+                manageResult(jsonObj);
+
             }
         });
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
     }
+    private void manageResult(JSONObject jsonObj) {
+        try {
+            String name = (String) jsonObj.get("name");
+            String email = (String) jsonObj.get("email");
+            String body = (String) jsonObj.get("body");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //https://jsonplaceholder.typicode.com/comments
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -51,5 +81,42 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    //PRIVATE METHODS
+
+    private JSONObject readJSONFeed(String url) {
+        String jsonArticle = new String();
+        JSONArray obj = null;
+        JSONObject jsonObj = null;
+        try {
+            URL urlObj = new URL(url);
+            HttpURLConnection urlConnection = (HttpURLConnection) urlObj.openConnection();
+            BufferedReader in = new BufferedReader(new
+                    InputStreamReader(urlConnection.getInputStream())
+            );
+            int statusCode = urlConnection.getResponseCode();
+            if (statusCode == 200) {
+                String line;
+                while ((line = in.readLine()) != null) {
+                    jsonArticle+=line;
+                }
+            } else {
+                Log.d("JSON", "Failed to download file"+statusCode);
+            }
+            in.close();
+            urlConnection.disconnect();
+            obj = new JSONArray(jsonArticle);
+
+
+            return obj.getJSONObject(0);
+        }
+        catch(MalformedURLException e){
+            Log.d("URL",e.getStackTrace().toString());
+        }
+        catch (Exception e) {
+            Log.d("JSON",e.toString());
+        }
+        return jsonObj;
     }
 }

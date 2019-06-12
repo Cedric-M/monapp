@@ -1,5 +1,6 @@
 package fr.cesi.monapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,6 +35,13 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        initListener();
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+    }
+
+    private void initListener() {
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,9 +55,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+        Button button1 = findViewById(R.id.button1);
+        button1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, ScrollingActivity.class);
+                MainActivity.this.startActivity(intent);
+
+            }
+        });
     }
+
     private void manageResult(JSONObject jsonObj) {
         try {
             String name = (String) jsonObj.get("name");
